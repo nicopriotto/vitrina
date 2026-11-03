@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* graphite ramp */
+  --color-deep: #0f0f10;
+  --color-bg: #141415;
+  --color-surface: #19191b;
+  --color-raised: #232325;
+  --color-hair: rgb(237 237 237 / 0.08);
+  --color-fg: #ededed;
+  --color-fg2: #a1a1a6;
+  --color-fg3: #85858b;
+
+  /* one accent, used for the primary action and the live signal */
+  --color-accent: #ff7a45;
+  --color-pos: #4cc38a;
+  --color-neg: #e5484d;
+  --color-warn: #e2b04a;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html, body { background: var(--color-bg); color: var(--color-fg); }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.5; }
+::selection { background: var(--color-accent); color: #1a0f0a; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+@keyframes live { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
+.live-dot { animation: live 1.6s var(--ease-out-soft) infinite; }
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
