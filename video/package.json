@@ -1,0 +1,31 @@
+{
+  "name": "vitrina-demo-video",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Vitrina demo video, coded with Remotion",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Demo out/raw.mp4 --crf=16 --audio-bitrate=320k --concurrency=2",
+    "still": "remotion still src/index.ts Demo out/still.png",
+    "thumb": "remotion still src/index.ts Thumbnail out/thumb.png",
+    "record": "node tools/record/record.mjs",
+    "fake-take": "node tools/voice/fake-take.mjs",
+    "voice": "node tools/voice/elevenlabs.mjs",
+    "transcribe": "uv run --python 3.12 --with faster-whisper tools/voice/transcribe.py",
+    "finish": "bash tools/finish.sh",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.540",
+    "@remotion/google-fonts": "4.0.540",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.540"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "dotenv": "^18.0.10",
+    "playwright": "1.56.1",
+    "typescript": "5.8.3"
+  }
+}
