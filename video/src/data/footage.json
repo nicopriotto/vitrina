@@ -1,0 +1,20 @@
+{
+  "site": {
+    "duration": 14.56
+  },
+  "landing": {
+    "duration": 6.56
+  },
+  "shop": {
+    "duration": 23.42
+  },
+  "orders": {
+    "duration": 27.64
+  },
+  "ingest": {
+    "duration": 14.28
+  },
+  "connect": {
+    "duration": 165.6
+  }
+}
