@@ -1,0 +1,176 @@
+[
+  {
+    "id": "H1",
+    "section": "hook",
+    "text": "Your next customer won't browse your store.",
+    "say": "Your next customer won't browse your store."
+  },
+  {
+    "id": "H2",
+    "section": "hook",
+    "text": "Instead, they'll send an agent.",
+    "say": "Instead, they'll send an agent."
+  },
+  {
+    "id": "H3",
+    "section": "sam",
+    "text": "Take Sam. Tonight he asks his assistant: \"Find me a black tee, size M, under forty dollars. And buy it.\"",
+    "say": "Take Sam. Tonight he asks his assistant: \"Find me a black tee, size M, under forty dollars. And buy it.\""
+  },
+  {
+    "id": "H4",
+    "section": "sam",
+    "text": "So the agent checks the big stores, but it never finds Lumen.",
+    "say": "So the agent checks the big stores, but it never finds Lumen."
+  },
+  {
+    "id": "H5",
+    "section": "sam",
+    "text": "Lumen is a small shop in Brooklyn that sells that exact tee. But to the agent, it's invisible.",
+    "say": "Lumen is a small shop in Brooklyn that sells that exact tee. But to the agent, it's invisible."
+  },
+  {
+    "id": "P1",
+    "section": "problem",
+    "text": "That's because agents don't see a storefront. They see this.",
+    "say": "That's because agents don't see a storefront. They see this."
+  },
+  {
+    "id": "P2",
+    "section": "problem",
+    "text": "There's no product feed, no API, and no checkout they can call.",
+    "say": "There's no product feed, no A.P.I., and no checkout they can call."
+  },
+  {
+    "id": "P3",
+    "section": "problem",
+    "text": "PayPal is bringing agentic checkout to the big platforms, but small stores like Lumen are left behind.",
+    "say": "PayPal is bringing agentic checkout to the big platforms, but small stores like Lumen are left behind."
+  },
+  {
+    "id": "T1",
+    "section": "turn",
+    "text": "So we built Vitrina. In Spanish, it means shop window. And this one is made for agents.",
+    "say": "So we built Vitrina. In Spanish, it means shop window. And this one is made for agents."
+  },
+  {
+    "id": "I1",
+    "section": "input",
+    "text": "Here's how it works. Maya, who runs Lumen, pastes her store's URL and the PayPal email where she gets paid. That's all.",
+    "say": "Here's how it works. Maya, who runs Lumen, pastes her store's U.R.L. and the PayPal email where she gets paid. That's all."
+  },
+  {
+    "id": "I2",
+    "section": "input",
+    "text": "Then Vitrina reads the store the way a person would: every product, every size and color, every price.",
+    "say": "Then Vitrina reads the store the way a person would: every product, every size and color, every price."
+  },
+  {
+    "id": "I3",
+    "section": "input",
+    "text": "And it turns all of that into a catalog an agent understands.",
+    "say": "And it turns all of that into a catalog an agent understands."
+  },
+  {
+    "id": "C1",
+    "section": "climax",
+    "text": "A minute later, Lumen is live on Vitrina, as an MCP server wired to PayPal.",
+    "say": "A minute later, Lumen is live on Vitrina, as an M.C.P. server wired to PayPal."
+  },
+  {
+    "id": "C2",
+    "section": "climax",
+    "text": "And shoppers don't have to add stores one by one. They add Vitrina once, in Claude, ChatGPT or Gemini.",
+    "say": "And shoppers don't have to add stores one by one. They add Vitrina once, in Claude, Chat G.P.T. or Gemini."
+  },
+  {
+    "id": "C3",
+    "section": "climax",
+    "text": "From then on, every Vitrina store is one search away, Lumen included.",
+    "say": "From then on, every Vitrina store is one search away, Lumen included."
+  },
+  {
+    "id": "R1",
+    "section": "payoff",
+    "text": "So let's go back to Sam. His assistant has Vitrina now, and he makes the same request.",
+    "say": "So let's go back to Sam. His assistant has Vitrina now, and he makes the same request."
+  },
+  {
+    "id": "R2",
+    "section": "payoff",
+    "text": "This time, the agent finds Lumen's tee: black, size M, thirty-two dollars.",
+    "say": "This time, the agent finds Lumen's tee: black, size M, thirty-two dollars."
+  },
+  {
+    "id": "R3",
+    "section": "payoff",
+    "text": "It builds the order, and Vitrina prices it on the server, so the agent can't make up a total.",
+    "say": "It builds the order, and Vitrina prices it on the server, so the agent can't make up a total."
+  },
+  {
+    "id": "R4",
+    "section": "payoff",
+    "text": "Then the agent stops, because paying is Sam's call.",
+    "say": "Then the agent stops, because paying is Sam's call."
+  },
+  {
+    "id": "R5",
+    "section": "payoff",
+    "text": "Sam approves with PayPal, and the order is paid.",
+    "say": "Sam approves with PayPal, and the order is paid."
+  },
+  {
+    "id": "R6",
+    "section": "payoff",
+    "text": "The money goes straight to Maya's PayPal account.",
+    "say": "The money goes straight to Maya's PayPal account."
+  },
+  {
+    "id": "K1",
+    "section": "how",
+    "text": "But how does a store with no checkout get paid?",
+    "say": "But how does a store with no checkout get paid?"
+  },
+  {
+    "id": "K2",
+    "section": "how",
+    "text": "It's simple: Maya's PayPal email is the whole setup.",
+    "say": "It's simple: Maya's PayPal email is the whole setup."
+  },
+  {
+    "id": "K3",
+    "section": "how",
+    "text": "When an agent checks out, Vitrina creates a PayPal order. The items and the total come from Lumen's catalog, and the payee is Maya.",
+    "say": "When an agent checks out, Vitrina creates a PayPal order. The items and the total come from Lumen's catalog, and the payee is Maya."
+  },
+  {
+    "id": "K4",
+    "section": "how",
+    "text": "Sam's card and address stay inside PayPal, so the agent never sees them.",
+    "say": "Sam's card and address stay inside PayPal, so the agent never sees them."
+  },
+  {
+    "id": "S1",
+    "section": "ship",
+    "text": "After that, Maya does what she always does. The order lands in her dashboard, with Sam's address.",
+    "say": "After that, Maya does what she always does. The order lands in her dashboard, with Sam's address."
+  },
+  {
+    "id": "S2",
+    "section": "ship",
+    "text": "She packs it, ships it, and marks it shipped. And she can see every step the agent took.",
+    "say": "She packs it, ships it, and marks it shipped. And she can see every step the agent took."
+  },
+  {
+    "id": "X1",
+    "section": "close",
+    "text": "That's Vitrina. Any store, ready for agents, and wired to PayPal.",
+    "say": "That's Vitrina. Any store, ready for agents, and wired to PayPal."
+  },
+  {
+    "id": "X2",
+    "section": "close",
+    "text": "Agents shop. Humans approve.",
+    "say": "Agents shop. Humans approve."
+  }
+]
