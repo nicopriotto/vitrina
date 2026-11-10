@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: vitrina
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    preDeployCommand: pnpm db:migrate
+    startCommand: pnpm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      # Use an external Postgres (e.g. Neon free tier): Render's free Postgres expires after 30 days.
+      - key: DATABASE_URL
+        sync: false
+      # AI: set AI_PROVIDER (anthropic | openai | llama) and that provider's key.
+      - key: AI_PROVIDER
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LLAMA_API_KEY
+        sync: false
+      - key: LLAMA_BASE_URL
+        value: https://api.llama.com/compat/v1/
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: APP_URL
+        sync: false # e.g. https://vitrina.onrender.com
+      - key: FX_RATES_JSON
+        value: '{"ARS":0.00085}'
