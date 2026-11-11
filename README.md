@@ -6,6 +6,15 @@ Paste a store URL. Vitrina reads the site, builds a structured catalog and publi
 
 ![Landing page](docs/screenshots/landing.png)
 
+## For judges
+
+- **Live app:** https://vitrina-q1if.onrender.com (free instance: the first visit after a while can take up to a minute to wake up)
+- **Demo store to paste on the landing page:** https://vitrina-q1if.onrender.com/mock/lumen
+- **Vitrina MCP for any agent:** `https://vitrina-q1if.onrender.com/api/mcp`
+- **Paying:** use any PayPal sandbox **Personal** account. You can create one for free at [developer.paypal.com](https://developer.paypal.com/dashboard) under **Testing tools → Sandbox accounts**.
+
+Flow: paste the demo store URL and a PayPal sandbox Business email → watch the catalog being built → **Try it with an agent** → ask for "a black t-shirt in size M, under $40" → pay with your sandbox Personal account → the order appears in the store's **Orders** tab without a reload.
+
 ## Why
 
 Agentic commerce is arriving through big platforms. The small store that sells through Instagram, Tiendanube or a hand-built site has no API, no product feed and no checkout an agent can call, so agents never find it.
