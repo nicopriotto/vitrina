@@ -4,12 +4,14 @@ services:
     runtime: node
     plan: free
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
-    preDeployCommand: pnpm db:migrate
-    startCommand: pnpm start
+    # Free instances skip pre-deploy commands, so migrations run on start (they are idempotent).
+    startCommand: pnpm db:migrate && pnpm start
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: COREPACK_ENABLE_DOWNLOAD_PROMPT
+        value: "0"
       # Use an external Postgres (e.g. Neon free tier): Render's free Postgres expires after 30 days.
       - key: DATABASE_URL
         sync: false

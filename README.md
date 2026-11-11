@@ -107,7 +107,7 @@ In Claude, open **Settings → Connectors → Add custom connector** and paste `
 
 ## Deploy
 
-`render.yaml` is a Render Blueprint. Use an external Postgres (for example Neon), set `APP_URL` to the Render URL and add your keys. Migrations run before each deploy.
+`render.yaml` is a Render Blueprint. Use an external Postgres (for example Neon), set `APP_URL` to the Render URL and add your keys. Migrations run when the service starts.
 
 ## License
 
