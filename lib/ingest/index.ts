@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb, stores, products, variants, ingestionEvents } from "@/lib/db";
-import { llmConfigured, llmSetupHint } from "@/lib/llm";
+import { llmConfigured } from "@/lib/llm";
 import { fetchText, mapLimit } from "./http";
 import { tryShopify } from "./shopify";
 import { discoverProductLinks, parseJsonLdProducts } from "./jsonld";
@@ -126,7 +126,7 @@ export async function runIngestion(storeId: string): Promise<void> {
       if (!llmConfigured()) {
         return fail(
           storeId,
-          `This site has no structured product data and AI extraction is not configured. ${llmSetupHint()}`,
+          "This site has no structured product data, and this deployment runs without an AI key. Add your own AI key on the home page, or try the demo store with structured data (/mock/lumen?jsonld=1).",
         );
       }
       method = "AI extraction";

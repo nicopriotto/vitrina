@@ -9,11 +9,21 @@ Paste a store URL. Vitrina reads the site, builds a structured catalog and publi
 ## For judges
 
 - **Live app:** https://vitrina-q1if.onrender.com (free instance: the first visit after a while can take up to a minute to wake up)
-- **Demo store to paste on the landing page:** https://vitrina-q1if.onrender.com/mock/lumen
 - **Vitrina MCP for any agent:** `https://vitrina-q1if.onrender.com/api/mcp`
 - **Paying:** use any PayPal sandbox **Personal** account. You can create one for free at [developer.paypal.com](https://developer.paypal.com/dashboard) under **Testing tools → Sandbox accounts**.
 
-Flow: paste the demo store URL and a PayPal sandbox Business email → watch the catalog being built → **Try it with an agent** → ask for "a black t-shirt in size M, under $40" → pay with your sandbox Personal account → the order appears in the store's **Orders** tab without a reload.
+**The live app runs without an AI key of its own.** Everything works with no key: ingesting the demo store, the store's MCP endpoint, PayPal checkout and the orders dashboard. The parts that need a model use yours:
+
+| What | Without a key | With your own key |
+|---|---|---|
+| Demo store | Loads from its structured data: https://vitrina-q1if.onrender.com/mock/lumen?jsonld=1 (the **Use demo store** button fills it in) | Paste https://vitrina-q1if.onrender.com/mock/lumen to see the catalog read from plain HTML by AI |
+| Agent | Connect any MCP client (Claude, ChatGPT, Cursor) to the MCP URL: it brings its own model | Chat in the built-in **Agent playground** |
+
+To use your key, open **Use your own AI key** on the home page or in the Agent playground and paste a Claude, OpenAI or Llama key. It stays in your browser and is sent only with your own requests; Vitrina never stores it. There is also a [recorded run](https://vitrina-q1if.onrender.com/demo/playground) of the full agent flow.
+
+**Flow without a key:** click **Use demo store**, enter a PayPal sandbox Business email and press **Make it agent-ready** → watch the catalog being built → add the MCP URL to Claude (**Settings → Connectors → Add custom connector**) → ask for "a black t-shirt in size M, under $40" → open the PayPal link the agent returns and pay with your sandbox Personal account → the order appears in the store's **Orders** tab without a reload.
+
+**Flow with your key:** same start, then **Try it with an agent**, ask the same thing and pay with the PayPal button inside the chat.
 
 ## Why
 
@@ -81,9 +91,11 @@ Vitrina is model-agnostic. Set `AI_PROVIDER` to choose:
 
 AI powers catalog extraction for plain-HTML stores and the Agent playground. The MCP endpoints don't need it, because the MCP client brings its own model.
 
+The server key is optional. Without one, a visitor can paste their own key in the UI: it is sent as request headers and used for that request only (the ingestion it starts included), never stored or logged.
+
 ## Run it
 
-You use **your own** keys and accounts: a PayPal sandbox REST app, a sandbox Business account (receives payments) and a sandbox Personal account (pays), one AI provider key and a Postgres database.
+You use **your own** keys and accounts: a PayPal sandbox REST app, a sandbox Business account (receives payments) and a sandbox Personal account (pays), a Postgres database and, optionally, one AI provider key.
 
 ```bash
 docker compose up -d

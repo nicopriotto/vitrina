@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { chatStream, llmConfigured, llmSetupHint, type ChatMessage, type ToolCall } from "@/lib/llm";
+import { aiKeyFromHeaders, chatStream, llmConfigured, runWithAiKey, type ChatMessage, type ToolCall } from "@/lib/llm";
 import { executeTool, llmTools } from "@/lib/agent-tools";
 import { getStoreBySlug } from "@/lib/stores";
 
@@ -33,13 +33,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   const enc = new TextEncoder();
   const tools = llmTools();
+  const ownKey = aiKeyFromHeaders(req.headers);
 
   const stream = new ReadableStream({
-    async start(controller) {
+    start: (controller) => runWithAiKey(ownKey, async () => {
       const send = (obj: unknown) => controller.enqueue(enc.encode(JSON.stringify(obj) + "\n"));
       try {
         if (!llmConfigured()) {
-          send({ type: "error", message: `The AI agent is not configured yet. ${llmSetupHint()}` });
+          send({ type: "error", code: "no_ai_key", message: "This deployment runs without an AI key. Add your own key to chat with the agent, or connect any MCP client to the store's endpoint." });
           return;
         }
         const messages: ChatMessage[] = [
@@ -77,13 +78,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
           if (turn === MAX_TURNS - 1) send({ type: "text", delta: "\n\n(Stopped: too many steps. Please try again.)" });
         }
       } catch (e) {
-        console.error("[chat]", e);
-        send({ type: "error", message: "The agent hit a problem. Please try again." });
+        const status = (e as { status?: number }).status;
+        if (ownKey && (status === 401 || status === 403)) {
+          send({ type: "error", code: "bad_ai_key", message: "The AI provider rejected your key. Check it and try again." });
+        } else {
+          console.error("[chat]", e instanceof Error ? e.message : e);
+          send({ type: "error", message: "The agent hit a problem. Please try again." });
+        }
       } finally {
         send({ type: "done" });
         controller.close();
       }
-    },
+    }),
   });
 
   return new Response(stream, { headers: { "Content-Type": "application/x-ndjson", "Cache-Control": "no-cache, no-transform" } });

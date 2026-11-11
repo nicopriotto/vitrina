@@ -3,9 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { AiKeyControl } from "@/components/AiKeyControl";
+import { aiKeyHeaders, useAiKey } from "@/lib/ai-key-client";
 
-export function LandingForm({ demoUrl }: { demoUrl: string }) {
+export function LandingForm({ demoUrl, serverAi }: { demoUrl: string; serverAi: boolean }) {
   const router = useRouter();
+  const aiKey = useAiKey();
+  const hasAi = serverAi || Boolean(aiKey);
+  const [showKey, setShowKey] = useState(false);
   const [url, setUrl] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -18,7 +23,7 @@ export function LandingForm({ demoUrl }: { demoUrl: string }) {
     try {
       const res = await fetch("/api/stores", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...aiKeyHeaders(aiKey) },
         body: JSON.stringify({ url: url.trim(), payeeEmail: email.trim() }),
       });
       const body = await res.json();
@@ -53,10 +58,28 @@ export function LandingForm({ demoUrl }: { demoUrl: string }) {
           Make it agent-ready
           {!busy && <ArrowRight className="h-4 w-4" strokeWidth={1.5} />}
         </button>
-        <button type="button" onClick={() => setUrl(demoUrl)} className="h-12 rounded-lg border border-hair bg-raised px-5 text-[15px] text-fg transition-colors hover:border-fg3">
+        <button type="button" onClick={() => setUrl(hasAi ? demoUrl : `${demoUrl}?jsonld=1`)} className="h-12 rounded-lg border border-hair bg-raised px-5 text-[15px] text-fg transition-colors hover:border-fg3">
           Use demo store
         </button>
       </div>
+      {!serverAi && (
+        <div className="pt-2 text-[13px] leading-relaxed text-fg3">
+          {aiKey ? (
+            <AiKeyControl />
+          ) : (
+            <>
+              <p>
+                This deployment runs without an AI key. The demo store loads from its structured data, and the MCP endpoint works with any agent.{" "}
+                <button type="button" onClick={() => setShowKey(!showKey)} className="text-fg2 underline underline-offset-4 transition-colors hover:text-fg">
+                  Use your own AI key
+                </button>{" "}
+                to read plain HTML stores and chat in the Agent playground.
+              </p>
+              {showKey && <AiKeyControl className="mt-3" />}
+            </>
+          )}
+        </div>
+      )}
     </form>
   );
 }

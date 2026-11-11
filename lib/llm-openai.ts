@@ -60,14 +60,15 @@ function toTools(tools?: ToolDef[]) {
   }));
 }
 
-export function chatCompletionsProvider(cfg: Config): Provider {
+/** One provider per key: the server's (from env) or a key the visitor brought for a single request. */
+export function chatCompletionsProvider(cfg: Config, ownKey?: string): Provider {
   let client: OpenAI | null = null;
   let resolved: string | null = null;
 
   const getClient = () => {
-    const apiKey = process.env[cfg.keyVar];
+    const apiKey = ownKey || process.env[cfg.keyVar];
     if (!apiKey) throw new LlmNotConfiguredError(`${cfg.keyVar} is not set.`);
-    client ??= new OpenAI({ apiKey, baseURL: process.env[cfg.baseUrlVar] || cfg.defaultBaseUrl });
+    client ??= new OpenAI({ apiKey, baseURL: process.env[cfg.baseUrlVar] || cfg.defaultBaseUrl, ...(ownKey ? { maxRetries: 1 } : {}) });
     return client;
   };
 
@@ -167,16 +168,16 @@ export function chatCompletionsProvider(cfg: Config): Provider {
   };
 }
 
-export const openaiProvider = chatCompletionsProvider({
+const OPENAI: Config = {
   id: "openai",
   label: "OpenAI",
   keyVar: "OPENAI_API_KEY",
   baseUrlVar: "OPENAI_BASE_URL",
   modelVar: "OPENAI_MODEL",
   defaultModel: "gpt-5.5",
-});
+};
 
-export const llamaProvider = chatCompletionsProvider({
+const LLAMA: Config = {
   id: "llama",
   label: "Llama",
   keyVar: "LLAMA_API_KEY",
@@ -186,4 +187,9 @@ export const llamaProvider = chatCompletionsProvider({
   defaultModel: "Llama-4-Maverick-17B-128E-Instruct-FP8",
   temperature: 0.1,
   resolveModel: (ids, wanted) => ids.find((id) => /maverick/i.test(id)) ?? ids.find((id) => /llama/i.test(id)) ?? wanted,
-});
+};
+
+const envOpenai = chatCompletionsProvider(OPENAI);
+const envLlama = chatCompletionsProvider(LLAMA);
+export const openaiProvider = (apiKey?: string) => (apiKey ? chatCompletionsProvider(OPENAI, apiKey) : envOpenai);
+export const llamaProvider = (apiKey?: string) => (apiKey ? chatCompletionsProvider(LLAMA, apiKey) : envLlama);

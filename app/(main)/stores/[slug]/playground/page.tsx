@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { appUrl } from "@/lib/config";
-import { llmInfo } from "@/lib/llm";
+import { llmInfo, serverAiConfigured } from "@/lib/llm";
 import { getStoreBySlug } from "@/lib/stores";
 import { Playground } from "@/components/Playground";
 import { StoreNav } from "@/components/StoreNav";
@@ -21,6 +21,7 @@ export default async function PlaygroundPage({ params }: { params: Promise<{ slu
       mcpUrl={`${appUrl()}/api/stores/${slug}/mcp`}
       paypalClientId={process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? ""}
       aiLabel={llmInfo().label}
+      serverAi={serverAiConfigured()}
     />
     </>
   );

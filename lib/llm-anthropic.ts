@@ -12,11 +12,13 @@ import { LlmNotConfiguredError } from "./llm-types";
 const DEFAULT_MODEL = "claude-opus-5-5";
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 
-let client: Anthropic | null = null;
-function getClient(): Anthropic {
+let envClient: Anthropic | null = null;
+/** The server's client from ANTHROPIC_API_KEY, or a one-off client for a key the visitor brought. */
+function clientFor(apiKey?: string): Anthropic {
+  if (apiKey) return new Anthropic({ apiKey, maxRetries: 1 });
   if (!process.env.ANTHROPIC_API_KEY) throw new LlmNotConfiguredError("ANTHROPIC_API_KEY is not set.");
-  client ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  return client;
+  envClient ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return envClient;
 }
 
 const model = () => process.env.ANTHROPIC_MODEL || DEFAULT_MODEL;
@@ -71,7 +73,9 @@ function toTools(tools?: ToolDef[]): Anthropic.Beta.BetaTool[] | undefined {
 const textOf = (content: Anthropic.Beta.BetaContentBlock[]) =>
   content.map((b) => (b.type === "text" ? b.text : "")).join("");
 
-export const anthropicProvider: Provider = {
+export function anthropicProvider(apiKey?: string): Provider {
+  const getClient = () => clientFor(apiKey);
+  return {
   id: "anthropic",
   label: "Claude",
   model: async () => model(),
@@ -124,3 +128,4 @@ export const anthropicProvider: Provider = {
     return textOf(msg.content);
   },
 };
+}

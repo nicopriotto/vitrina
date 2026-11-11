@@ -1,4 +1,5 @@
 import { appUrl } from "@/lib/config";
+import { serverAiConfigured } from "@/lib/llm";
 import { LandingForm } from "@/components/LandingForm";
 import { AgentCard } from "@/components/landing/AgentCard";
 import { ProductBand } from "@/components/landing/ProductBand";
@@ -22,7 +23,7 @@ export default function Landing() {
           <p className="mt-7 max-w-[38rem] text-[21px] leading-[1.55] text-fg2">
             Paste a store URL. Vitrina publishes an MCP server for it, so any AI agent can search the catalog and check out with PayPal.
           </p>
-          <LandingForm demoUrl={`${appUrl()}/mock/lumen`} />
+          <LandingForm demoUrl={`${appUrl()}/mock/lumen`} serverAi={serverAiConfigured()} />
         </div>
         <AgentCard />
       </section>

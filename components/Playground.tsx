@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { ArrowUp, Check, ChevronDown, Loader2 } from "lucide-react";
+import { AiKeyControl } from "@/components/AiKeyControl";
+import { aiKeyHeaders, PROVIDER_LABELS, useAiKey } from "@/lib/ai-key-client";
 import { CopyButton } from "./CopyButton";
 import { OrdersFeed } from "./OrdersLive";
 import { WireLog } from "./WireLog";
@@ -140,7 +142,10 @@ export function Assistant({ blocks, onPaid, checkout }: { blocks: Block[]; onPai
   );
 }
 
-export function Playground({ slug, storeName, mcpUrl, paypalClientId, aiLabel }: { slug: string; storeName: string; mcpUrl: string; paypalClientId: string; aiLabel: string }) {
+export function Playground({ slug, storeName, mcpUrl, paypalClientId, aiLabel, serverAi }: { slug: string; storeName: string; mcpUrl: string; paypalClientId: string; aiLabel: string; serverAi: boolean }) {
+  const aiKey = useAiKey();
+  const hasAi = serverAi || Boolean(aiKey);
+  const label = aiKey ? PROVIDER_LABELS[aiKey.provider] : serverAi ? aiLabel : "No AI key";
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -165,7 +170,7 @@ export function Playground({ slug, storeName, mcpUrl, paypalClientId, aiLabel }:
     try {
       const res = await fetch(`/api/stores/${slug}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...aiKeyHeaders(aiKey) },
         body: JSON.stringify({ messages: historyFor(history) }),
       });
       if (!res.ok || !res.body) throw new Error("Request failed");
@@ -204,7 +209,7 @@ export function Playground({ slug, storeName, mcpUrl, paypalClientId, aiLabel }:
   }
 
   function send(text: string) {
-    if (!text.trim() || busy) return;
+    if (!text.trim() || busy || !hasAi) return;
     const base = msgsRef.current.filter((m) => !(m.role === "assistant" && m.blocks.length === 0));
     void run([...base, { role: "user", text }]);
     setInput("");
@@ -228,11 +233,25 @@ export function Playground({ slug, storeName, mcpUrl, paypalClientId, aiLabel }:
         <section className="flex min-h-0 flex-col">
           <div className="flex h-10 items-center justify-between text-[13px] text-fg3">
             <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-fg2" /> Agent · shopping at {storeName}</span>
-            <span className="font-mono">{aiLabel} · same tools as MCP</span>
+            <span className="font-mono">{label} · same tools as MCP</span>
           </div>
           <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-hair bg-surface">
             <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
-              {msgs.length === 0 && (
+              {msgs.length === 0 && !hasAi && (
+                <div className="grid h-full place-items-center">
+                  <div className="max-w-[460px]">
+                    <p className="text-[17px] text-fg">This deployment runs without an AI key</p>
+                    <p className="mt-2 text-[14px] leading-relaxed text-fg2">
+                      The agent needs a model. Add your own key to chat here, or connect any MCP client (Claude, ChatGPT, Cursor) to the endpoint on the right: it uses the same tools and brings its own model.
+                    </p>
+                    <AiKeyControl className="mt-5" />
+                    <a href="/demo/playground" className="mt-5 inline-block text-[13px] text-fg3 underline-offset-4 transition-colors hover:text-fg hover:underline">
+                      Or watch a recorded run of the full flow
+                    </a>
+                  </div>
+                </div>
+              )}
+              {msgs.length === 0 && hasAi && (
                 <div className="grid h-full place-items-center">
                   <div className="text-center">
                     <p className="text-fg3">Ask the agent to find and buy something.</p>
@@ -267,8 +286,8 @@ export function Playground({ slug, storeName, mcpUrl, paypalClientId, aiLabel }:
               }}
               className="flex gap-2 border-t border-hair p-3"
             >
-              <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Message" className="h-12 flex-1 rounded-lg border border-hair bg-bg px-4 text-[16px] outline-none transition-colors placeholder:text-fg3 focus:border-fg3" />
-              <button disabled={busy || !input.trim()} className="grid h-12 w-12 place-items-center rounded-lg bg-accent text-[#1a0f0a] transition-[filter,transform] hover:brightness-110 active:scale-[0.97] disabled:opacity-40" aria-label="Send">
+              <input value={input} disabled={!hasAi} onChange={(e) => setInput(e.target.value)} placeholder={hasAi ? "Message" : "Add an AI key to chat"} className="h-12 flex-1 rounded-lg border border-hair bg-bg px-4 text-[16px] outline-none transition-colors placeholder:text-fg3 focus:border-fg3" />
+              <button disabled={busy || !hasAi || !input.trim()} className="grid h-12 w-12 place-items-center rounded-lg bg-accent text-[#1a0f0a] transition-[filter,transform] hover:brightness-110 active:scale-[0.97] disabled:opacity-40" aria-label="Send">
                 <ArrowUp className="h-5 w-5" strokeWidth={1.5} />
               </button>
             </form>

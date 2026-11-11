@@ -88,3 +88,35 @@ describe("message conversion", () => {
     expect(out[3]).toEqual({ role: "tool", tool_call_id: "a", content: "1 result" });
   });
 });
+
+describe("visitor keys", () => {
+  it("reads a valid key from headers and ignores bad ones", async () => {
+    const { aiKeyFromHeaders } = await import("@/lib/llm");
+    expect(aiKeyFromHeaders(new Headers({ "x-ai-provider": "OpenAI", "x-ai-key": " sk-1 " }))).toEqual({ provider: "openai", apiKey: "sk-1" });
+    expect(aiKeyFromHeaders(new Headers({ "x-ai-provider": "gemini", "x-ai-key": "k" }))).toBeNull();
+    expect(aiKeyFromHeaders(new Headers({ "x-ai-provider": "anthropic" }))).toBeNull();
+  });
+
+  it("wins over the server config for that call only", async () => {
+    const { runWithAiKey, serverAiConfigured } = await import("@/lib/llm");
+    env({});
+    expect(llmConfigured()).toBe(false);
+    runWithAiKey({ provider: "anthropic", apiKey: "k" }, () => {
+      expect(llmConfigured()).toBe(true);
+      expect(providerId()).toBe("anthropic");
+      expect(serverAiConfigured()).toBe(false);
+    });
+    expect(llmConfigured()).toBe(false);
+  });
+
+  it("follows async work started inside it", async () => {
+    const { runWithAiKey } = await import("@/lib/llm");
+    env({});
+    let seen: string | null = null;
+    await runWithAiKey({ provider: "llama", apiKey: "k" }, async () => {
+      await new Promise((r) => setTimeout(r, 5));
+      seen = providerId();
+    });
+    expect(seen).toBe("llama");
+  });
+});

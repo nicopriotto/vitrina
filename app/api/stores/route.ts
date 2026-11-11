@@ -3,6 +3,7 @@ import { z } from "zod";
 import * as cheerio from "cheerio";
 import { getDb, stores } from "@/lib/db";
 import { runIngestion } from "@/lib/ingest";
+import { aiKeyFromHeaders, runWithAiKey } from "@/lib/llm";
 import { fetchText } from "@/lib/ingest/http";
 import { uniqueSlug } from "@/lib/stores";
 
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
     .returning();
 
   // Fire and forget: progress is published through ingestion_events.
-  void runIngestion(store.id);
+  // A visitor's own AI key (if any) is used for this ingestion only and never stored.
+  void runWithAiKey(aiKeyFromHeaders(req.headers), () => runIngestion(store.id));
   return NextResponse.json({ slug });
 }

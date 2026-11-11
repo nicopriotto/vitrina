@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { anthropicProvider } from "./llm-anthropic";
@@ -11,20 +12,54 @@ import { LlmNotConfiguredError } from "./llm-types";
  *
  * Pick the provider with AI_PROVIDER=anthropic|openai|llama. Without it, the first
  * provider whose key is set wins, in that order.
+ *
+ * A visitor can also bring their own key for one request (`runWithAiKey`). It wins over
+ * the server's configuration for that request only and is never stored or logged.
  */
 
 export type { ChatMessage, StreamEvent, ToolCall, ToolDef } from "./llm-types";
 export { LlmNotConfiguredError } from "./llm-types";
 export { parseTextToolCall } from "./llm-openai";
 
-const PROVIDERS: Record<ProviderId, { provider: Provider; keyVar: string }> = {
-  anthropic: { provider: anthropicProvider, keyVar: "ANTHROPIC_API_KEY" },
-  openai: { provider: openaiProvider, keyVar: "OPENAI_API_KEY" },
-  llama: { provider: llamaProvider, keyVar: "LLAMA_API_KEY" },
+const PROVIDERS: Record<ProviderId, { make: (apiKey?: string) => Provider; keyVar: string; label: string }> = {
+  anthropic: { make: anthropicProvider, keyVar: "ANTHROPIC_API_KEY", label: "Claude" },
+  openai: { make: openaiProvider, keyVar: "OPENAI_API_KEY", label: "OpenAI" },
+  llama: { make: llamaProvider, keyVar: "LLAMA_API_KEY", label: "Llama" },
 };
 const ORDER: ProviderId[] = ["anthropic", "openai", "llama"];
+const envAnthropic = anthropicProvider();
+
+export type AiKey = { provider: ProviderId; apiKey: string };
+const visitorKey = new AsyncLocalStorage<AiKey>();
+
+/** Runs `fn` (and everything it starts, including background work) with the visitor's key. */
+export function runWithAiKey<T>(key: AiKey | null, fn: () => T): T {
+  return key ? visitorKey.run(key, fn) : fn();
+}
+
+/** Reads a visitor's key from the `x-ai-provider` / `x-ai-key` request headers. */
+export function aiKeyFromHeaders(headers: Headers): AiKey | null {
+  const provider = headers.get("x-ai-provider")?.trim().toLowerCase();
+  const apiKey = headers.get("x-ai-key")?.trim();
+  if (!provider || !apiKey || !(provider in PROVIDERS) || apiKey.length > 400) return null;
+  return { provider: provider as ProviderId, apiKey };
+}
+
+/** True when the server itself has an AI key (visitors can still bring their own). */
+export function serverAiConfigured(): boolean {
+  try {
+    const id = serverProviderId();
+    return Boolean(id && process.env[PROVIDERS[id].keyVar]);
+  } catch {
+    return false;
+  }
+}
 
 export function providerId(): ProviderId | null {
+  return visitorKey.getStore()?.provider ?? serverProviderId();
+}
+
+function serverProviderId(): ProviderId | null {
   const wanted = process.env.AI_PROVIDER?.trim().toLowerCase();
   if (wanted) {
     if (!(wanted in PROVIDERS)) throw new Error(`AI_PROVIDER must be one of ${ORDER.join(", ")} (got "${wanted}").`);
@@ -34,28 +69,29 @@ export function providerId(): ProviderId | null {
 }
 
 function provider(): Provider {
-  const id = providerId();
+  const own = visitorKey.getStore();
+  if (own) return PROVIDERS[own.provider].make(own.apiKey);
+  const id = serverProviderId();
   if (!id) throw new LlmNotConfiguredError(`No AI provider key is set. Add one of ${keyVars()} to .env.local.`);
-  return PROVIDERS[id].provider;
+  return id === "anthropic" ? envAnthropic : PROVIDERS[id].make();
 }
 
 const keyVars = () => ORDER.map((id) => PROVIDERS[id].keyVar).join(", ");
 
 export function llmConfigured(): boolean {
-  const id = providerId();
-  return Boolean(id && process.env[PROVIDERS[id].keyVar]);
+  return Boolean(visitorKey.getStore()) || serverAiConfigured();
 }
 
 /** What to tell a user when AI is off. */
 export function llmSetupHint(): string {
-  const id = providerId();
+  const id = serverProviderId();
   return id ? `Set ${PROVIDERS[id].keyVar} in .env.local.` : `Set AI_PROVIDER and one of ${keyVars()} in .env.local.`;
 }
 
 /** Short label for the UI, e.g. "Claude", "OpenAI", "Llama". */
 export function llmInfo(): { id: ProviderId | null; label: string } {
   const id = providerId();
-  return { id, label: id ? PROVIDERS[id].provider.label : "AI" };
+  return { id, label: id ? PROVIDERS[id].label : "AI" };
 }
 
 export function chatStream(opts: { messages: ChatMessage[]; tools?: ToolDef[] }): AsyncGenerator<StreamEvent> {
