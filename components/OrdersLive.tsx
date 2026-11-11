@@ -3,14 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ApiOrder } from "./types";
+import dynamic from "next/dynamic";
 
-function ago(iso: string) {
-  const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
-  if (s < 45) return "just now";
-  if (s < 3600) return `${Math.round(s / 60)} min ago`;
-  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
-  return `${Math.round(s / 86400)} d ago`;
-}
+// AG Grid loads only on the orders page, not with the playground's small feed.
+const OrdersGrid = dynamic(() => import("./OrdersGrid").then((m) => m.OrdersGrid), {
+  ssr: false,
+  loading: () => <p className="py-5 text-[13px] text-fg3">Loading…</p>,
+});
 
 export function useOrders(slug: string, intervalMs = 2000) {
   const [orders, setOrders] = useState<ApiOrder[] | null>(null);
@@ -86,29 +85,6 @@ export function OrdersTable({ slug }: { slug: string }) {
   return <OrdersTableView orders={view} playgroundHref={`/stores/${slug}/playground`} onShip={ship} />;
 }
 
-/** Ship-to from the buyer's PayPal account, and the one thing the merchant does by hand: ship it. */
-function ShipCell({ o, onShip }: { o: ApiOrder; onShip?: (id: string) => void }) {
-  if (o.status !== "PAID") return <span className="text-[14px] text-fg3">—</span>;
-  const a = o.shipping;
-  return (
-    <div className="flex flex-col gap-2">
-      {a ? (
-        <div className="text-[14px] leading-snug">
-          <div>{a.name}</div>
-          <div className="text-fg3">{a.line1}, {a.city}{a.state ? ` ${a.state}` : ""} {a.postalCode}</div>
-        </div>
-      ) : (
-        <span className="text-[14px] text-fg3">In your PayPal account</span>
-      )}
-      {o.shippedAt ? (
-        <span className="font-mono text-[13px] text-pos">Shipped</span>
-      ) : onShip ? (
-        <button onClick={() => onShip(o.id)} className="h-8 self-start rounded-lg bg-raised px-3 text-[13px] transition-colors hover:bg-hair">Mark as shipped</button>
-      ) : null}
-    </div>
-  );
-}
-
 export function OrdersTableView({ orders, playgroundHref, onShip }: { orders: ApiOrder[] | null; playgroundHref: string; onShip?: (id: string) => void }) {
   const seen = useRef<Set<string>>(new Set());
   const first = useRef(true);
@@ -128,54 +104,19 @@ export function OrdersTableView({ orders, playgroundHref, onShip }: { orders: Ap
         <Stat label="Paid orders" value={String(paid.length)} />
         <Stat label="All orders" value={String(orders?.length ?? 0)} />
       </dl>
-      <table className="mt-8 w-full text-left text-[15px]">
-        <thead className="text-[13px] text-fg3">
-          <tr className="border-b border-hair">
-            <th className="py-3 pr-4 font-normal">Order</th>
-            <th className="py-3 pr-4 font-normal">When</th>
-            <th className="py-3 pr-4 font-normal">Items</th>
-            <th className="py-3 pr-4 font-normal">Ship to</th>
-            <th className="py-3 pr-4 font-normal">Channel</th>
-            <th className="py-3 pr-4 font-normal">Status</th>
-            <th className="py-3 text-right font-normal">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <AnimatePresence initial={false}>
-            {(orders ?? []).map((o) => (
-              <motion.tr
-                key={o.id}
-                layout="position"
-                initial={fresh.has(o.id) ? { opacity: 0, backgroundColor: "rgba(255,122,69,0.16)" } : false}
-                animate={{ opacity: 1, backgroundColor: "rgba(255,122,69,0)" }}
-                transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-                className="border-b border-hair align-top"
-              >
-                <td className="py-4 pr-4 font-mono text-[13px] text-fg2">#{o.id.slice(0, 8)}</td>
-                <td className="py-4 pr-4 text-[14px] text-fg3">{ago(o.createdAt)}</td>
-                <td className="py-4 pr-4">
-                  {o.items.map((it, i) => (
-                    <div key={i}>{it.quantity} × {it.name}{it.variantLabel && <span className="text-fg3"> · {it.variantLabel}</span>}</div>
-                  ))}
-                </td>
-                <td className="py-4 pr-4"><ShipCell o={o} onShip={onShip} /></td>
-                <td className="py-4 pr-4"><ChannelText channel={o.channel} /></td>
-                <td className="py-4 pr-4"><StatusText status={o.status} /></td>
-                <td className="tnum py-4 text-right font-mono">${o.total}</td>
-              </motion.tr>
-            ))}
-          </AnimatePresence>
-          {orders && orders.length === 0 && (
-            <tr>
-              <td colSpan={7} className="py-20 text-center">
-                <div className="text-[17px] text-fg2">No orders yet</div>
-                <p className="mt-1 text-[14px] text-fg3">Orders appear here the moment an agent checks out and the buyer pays.</p>
-                <a href={playgroundHref} className="mt-5 inline-flex h-10 items-center rounded-lg bg-raised px-4 text-[14px] transition-colors hover:bg-hair">Open the agent playground</a>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <div className="mt-8">
+        {orders && orders.length === 0 ? (
+          <div className="border-y border-hair py-20 text-center">
+            <div className="text-[17px] text-fg2">No orders yet</div>
+            <p className="mt-1 text-[14px] text-fg3">Orders appear here the moment an agent checks out and the buyer pays.</p>
+            <a href={playgroundHref} className="mt-5 inline-flex h-10 items-center rounded-lg bg-raised px-4 text-[14px] transition-colors hover:bg-hair">Open the agent playground</a>
+          </div>
+        ) : orders ? (
+          <OrdersGrid orders={orders} fresh={fresh} onShip={onShip} />
+        ) : (
+          <p className="py-5 text-[13px] text-fg3">Loading…</p>
+        )}
+      </div>
     </div>
   );
 }

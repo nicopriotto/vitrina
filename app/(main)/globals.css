@@ -32,3 +32,7 @@ body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-
 @keyframes live { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
 .live-dot { animation: live 1.6s var(--ease-out-soft) infinite; }
 @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+
+/* AG Grid: a new order glows once, then settles */
+@keyframes vitrina-fresh { from { background-color: rgb(255 122 69 / 0.16); } to { background-color: transparent; } }
+.vitrina-fresh-row { animation: vitrina-fresh 1.6s cubic-bezier(0.22, 1, 0.36, 1); }

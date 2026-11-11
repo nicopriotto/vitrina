@@ -9,7 +9,7 @@ export function DemoOrders() {
   return (
     <>
       <StoreNav name={DEMO_STORE.name} slug={DEMO_STORE.slug} demo />
-      <main className="mx-auto max-w-[1100px] px-10 pb-24 pt-10">
+      <main className="mx-auto max-w-[1280px] px-10 pb-24 pt-10">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-[44px] font-medium leading-[1.1] tracking-[-0.025em]">Orders</h1>

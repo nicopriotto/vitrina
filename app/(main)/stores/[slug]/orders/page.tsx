@@ -12,7 +12,7 @@ export default async function OrdersPage({ params }: { params: Promise<{ slug: s
   return (
     <>
       <StoreNav name={store.name} slug={slug} />
-      <main className="mx-auto max-w-[1100px] px-10 pb-24 pt-10">
+      <main className="mx-auto max-w-[1280px] px-10 pb-24 pt-10">
         <h1 className="text-[44px] font-medium leading-[1.1] tracking-[-0.025em]">Orders</h1>
         <p className="mt-2 max-w-xl text-[17px] text-fg2">Every payment from an agent, as it happens. This page updates by itself.</p>
         <div className="mt-10"><OrdersTable slug={slug} /></div>

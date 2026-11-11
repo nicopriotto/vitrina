@@ -6,6 +6,8 @@ Paste a store URL. Vitrina reads the site, builds a structured catalog and publi
 
 ![Landing page](docs/screenshots/landing.png)
 
+**Built with:** PayPal Orders v2 (sandbox) · Model Context Protocol · Claude / OpenAI / Llama · **[AG Grid](#merchant-dashboard-built-on-ag-grid)** for the merchant's order book · **[Render](#deploy)** for hosting
+
 ## For judges
 
 - **Live app:** https://vitrina-q1if.onrender.com (free instance: the first visit after a while can take up to a minute to wake up)
@@ -21,7 +23,7 @@ Paste a store URL. Vitrina reads the site, builds a structured catalog and publi
 
 To use your key, open **Use your own AI key** on the home page or in the Agent playground and paste a Claude, OpenAI or Llama key. It stays in your browser and is sent only with your own requests; Vitrina never stores it. There is also a [recorded run](https://vitrina-q1if.onrender.com/demo/playground) of the full agent flow.
 
-**Flow without a key:** click **Use demo store**, enter a PayPal sandbox Business email and press **Make it agent-ready** → watch the catalog being built → add the MCP URL to Claude (**Settings → Connectors → Add custom connector**) → ask for "a black t-shirt in size M, under $40" → open the PayPal link the agent returns and pay with your sandbox Personal account → the order appears in the store's **Orders** tab without a reload.
+**Flow without a key:** click **Use demo store**, enter a PayPal sandbox Business email and press **Make it agent-ready** → watch the catalog being built → add the MCP URL to Claude (**Settings → Connectors → Add custom connector**) → ask for "a black t-shirt in size M, under $40" → open the PayPal link the agent returns and pay with your sandbox Personal account → the order appears in the store's **Orders** tab without a reload, in an [AG Grid](#merchant-dashboard-built-on-ag-grid) order book you can sort, filter, search and export.
 
 **Flow with your key:** same start, then **Try it with an agent**, ask the same thing and pay with the PayPal button inside the chat.
 
@@ -45,9 +47,7 @@ Vitrina closes that gap with no integration work from the merchant: a URL become
 
 ![Agent playground](docs/screenshots/agent.png)
 
-**4. Get paid and ship.** The payment lands in the store's PayPal account. The order appears live in the merchant's dashboard with the buyer's shipping address from PayPal, and the merchant marks it as shipped.
-
-![Orders](docs/screenshots/orders.png)
+**4. Get paid and ship.** The payment lands in the store's PayPal account. The order appears live in the merchant's order book, built on **AG Grid**, with the buyer's shipping address from PayPal, and the merchant marks it as shipped ([details below](#merchant-dashboard-built-on-ag-grid)).
 
 Shoppers can also add one MCP server for every store at once: `/api/mcp` searches across all Vitrina stores and routes each checkout to the store that owns the product.
 
@@ -65,10 +65,10 @@ flowchart LR
   GMCP --> CLIENT
   TOOLS --> PP[PayPal Orders v2<br/>payee = store]
   PP -- buyer approves --> DB
-  DB --> DASH[Merchant dashboard]
+  DB --> DASH[Merchant order book<br/>AG Grid]
 ```
 
-Stack: Next.js 15, TypeScript, Drizzle + Postgres, Zod, the MCP TypeScript SDK (Streamable HTTP) and the PayPal Orders v2 API.
+Stack: Next.js 15, TypeScript, Drizzle + Postgres, Zod, the MCP TypeScript SDK (Streamable HTTP), the PayPal Orders v2 API, AG Grid Community for the merchant's order book, and Render for hosting.
 
 ## PayPal
 
@@ -78,6 +78,29 @@ Stack: Next.js 15, TypeScript, Drizzle + Postgres, Zod, the MCP TypeScript SDK (
 - **Safe capture.** A paid order is never captured twice.
 - **Shipping.** The buyer picks the address inside PayPal. Vitrina saves it on the order for the merchant, and the agent never sees the card or the address.
 - **Webhooks.** `POST /api/webhooks/paypal` verifies signatures and syncs approvals and captures.
+
+## Merchant dashboard: built on AG Grid
+
+The merchant's **Orders** page is an [AG Grid](https://www.ag-grid.com/) data grid (`ag-grid-react` + `ag-grid-community` 36, MIT). It is the one screen where the store owner works: every PayPal payment an agent brings in lands here, and this is where they ship it.
+
+![Orders on AG Grid](docs/screenshots/orders.png)
+
+What AG Grid does in it:
+
+| Feature | How Vitrina uses it |
+|---|---|
+| **Live rows** | The page polls the orders API every 2 seconds. `getRowId` keeps each order's row stable, so a new payment slides in (and glows once) without the grid re-rendering or losing your sort, filters or page |
+| **Sorting** | Every column sorts. Newest first by default; **Total** sorts as a number |
+| **Column filters** | A date filter on **When**, a number filter on **Total** (for example orders over $100), and text filters on **Items**, **Ship to**, **Status** and **Channel** (MCP or playground) |
+| **Quick search** | One search box filters across every column (`quickFilterText`), for example a buyer's name or a city |
+| **Work queues** | **All / To ship / Paid / Not paid** tabs with live counts: "To ship" is paid orders still waiting for the merchant |
+| **React cell renderers** | Status dots, the MCP channel tag, multi-line items with variants, the buyer's PayPal shipping address and the **Mark as shipped** button are React components inside AG Grid cells |
+| **Row height from data** | `getRowHeight` sizes each row from its items and address, so multi-item orders never clip |
+| **CSV export** | **Export CSV** downloads the filtered view (`exportDataAsCsv`) for the merchant's accounting or a shipping label tool |
+| **Pagination** | 20, 50 or 100 orders per page |
+| **Theming** | AG Grid's Theming API (`themeQuartz` + `colorSchemeDark` + `withParams`) matches the app's palette and type |
+
+Code: [`components/OrdersGrid.tsx`](components/OrdersGrid.tsx). Try it at `/stores/{slug}/orders` after an agent checkout, or right away on the [demo order book](https://vitrina-q1if.onrender.com/demo/orders).
 
 ## AI providers
 
@@ -128,7 +151,7 @@ In Claude, open **Settings → Connectors → Add custom connector** and paste `
 
 ## Deploy
 
-`render.yaml` is a Render Blueprint. Use an external Postgres (for example Neon), set `APP_URL` to the Render URL and add your keys. Migrations run when the service starts.
+Vitrina runs on **Render**: the live app is a Render web service, and `render.yaml` is a Render Blueprint. Use an external Postgres (for example Neon), set `APP_URL` to the Render URL and add your keys. Migrations run when the service starts.
 
 ## License
 
