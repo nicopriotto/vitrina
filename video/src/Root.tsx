@@ -35,9 +35,26 @@ const Thumbnail: React.FC = () => (
   </AbsoluteFill>
 );
 
+/** Devpost card, 3:2: title over the checkout card. */
+const DevpostThumb: React.FC = () => (
+  <AbsoluteFill style={{ background: C.bg }}>
+    <Bg />
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", gap: 44, padding: "0 60px" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
+        <div style={{ fontFamily: MONO, fontSize: 36, color: C.fg2 }}>vitrina<span style={{ color: C.accent }}>/</span></div>
+        <div style={{ fontFamily: SANS, fontSize: 80, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.03em", color: C.fg, textAlign: "center" }}>
+          Any small store, <span style={{ color: C.accent }}>agent-ready.</span>
+        </div>
+      </div>
+      <CheckoutCrop />
+    </AbsoluteFill>
+  </AbsoluteFill>
+);
+
 export const Root: React.FC = () => (
   <>
     <Composition id="Demo" component={Cut} durationInFrames={TOTAL} fps={FPS} width={W} height={H} />
     <Composition id="Thumbnail" component={Thumbnail} durationInFrames={1} fps={FPS} width={1280} height={720} />
+    <Composition id="DevpostThumb" component={DevpostThumb} durationInFrames={1} fps={FPS} width={1200} height={800} />
   </>
 );
